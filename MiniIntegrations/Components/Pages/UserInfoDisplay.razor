@@ -1,0 +1,35 @@
+@page "/me"
+@using System.Security.Claims
+@inject IHttpContextAccessor HttpContextAccessor
+
+<h1>Informacje o użytkowniku</h1>
+
+@{
+    var user = HttpContextAccessor?.HttpContext?.User;
+}
+
+@if (user?.Identity?.IsAuthenticated == true)
+{
+    <p>Status: zalogowany</p>
+    <p>Nazwa: @user.Identity?.Name</p>
+
+    @if (user.HasClaim(c => c.Type == ClaimTypes.Email) || user.HasClaim(c => c.Type == "email"))
+    {
+        <p>Email: @(user.FindFirst(ClaimTypes.Email)?.Value ?? user.FindFirst("email")?.Value)</p>
+    }
+
+    <h3>Wszystkie roszczenia (claims)</h3>
+    <ul>
+        @foreach (var c in user.Claims.OrderBy(c => c.Type))
+        {
+            <li><strong>@c.Type</strong>: @c.Value</li>
+        }
+    </ul>
+
+    <p><a href="/logout">Wyloguj</a></p>
+}
+else
+{
+    <p>Nie jesteś zalogowany.</p>
+    <p><a href="/login/kick?returnUrl=/me">Zaloguj się</a></p>
+}
